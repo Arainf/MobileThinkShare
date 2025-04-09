@@ -2,36 +2,47 @@ import {
     Text,
     View,
     StyleSheet,
-    Image,
+    TextInput,
     TouchableOpacity,
     useColorScheme,
-    TextInput,
     KeyboardAvoidingView,
     ScrollView,
     Platform,
+    Alert,
   } from "react-native";
-  import { useNavigation, Link, useRouter } from "expo-router";
-  import { useEffect, useMemo } from "react";
+  import { useRouter } from "expo-router";
+  import { useState } from "react";
+  import { supabase } from "../../../config/supabaseClient";
   
   export default function Register() {
     const colorScheme = useColorScheme();
     const router = useRouter();
-    const navigation = useNavigation();
   
-    const googleLogo =
-      colorScheme === "light"
-        ? require("../../../assets/icons/white-google-brands.png")
-        : require("../../../assets/icons/dark-google-brands.png");
+    const [email, setEmail] = useState("");
+    const [password, setPassword] = useState("");
+    const [name, setName] = useState("");
   
-    useEffect(() => {
-      navigation.setOptions({ headerShown: true });
-    }, [navigation]);
+    // Handle registration
+    const handleRegister = async () => {
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            full_name: name,
+          },
+        },
+      });
   
-    // Select theme dynamically
-    const theme = useMemo(
-      () => (colorScheme === "light" ? styles.light : styles.dark),
-      [colorScheme]
-    );
+      if (error) {
+        Alert.alert("Registration Failed", error.message);
+      } else {
+        Alert.alert("Success", "Account created successfully!");
+        router.push("/authentication/login");
+      }
+    };
+  
+    const theme = colorScheme === "light" ? styles.light : styles.dark;
   
     return (
       <KeyboardAvoidingView
@@ -54,33 +65,30 @@ import {
                   placeholder="Name"
                   placeholderTextColor="#8E8E8E"
                   autoCapitalize="none"
+                  value={name}
+                  onChangeText={setName}
                 />
                 <TextInput
                   style={theme.textInput}
-                  placeholder="Phone, or email"
+                  placeholder="Email"
                   placeholderTextColor="#8E8E8E"
                   autoCapitalize="none"
+                  value={email}
+                  onChangeText={setEmail}
                 />
                 <TextInput
                   style={theme.textInput}
-                  placeholder="Date of birth"
+                  placeholder="Password"
                   placeholderTextColor="#8E8E8E"
+                  secureTextEntry={true}
                   autoCapitalize="none"
-                    autoComplete="birthdate-full"
-                    inputMode="numeric"
+                  value={password}
+                  onChangeText={setPassword}
                 />
               </View>
-            </View>
   
-            <View style={theme.footer}>
-                <Text style={theme.text}>
-                    {""}
-                </Text>
-              <TouchableOpacity
-                onPress={() => router.push("/authentication/register")}
-                style={theme.button}
-              >
-                <Text style={theme.buttonText}>Next</Text>
+              <TouchableOpacity onPress={handleRegister} style={theme.button}>
+                <Text style={theme.buttonText}>Register</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -88,6 +96,8 @@ import {
       </KeyboardAvoidingView>
     );
   }
+  
+  // Add your styles here (same as before)
   
   // ======== Styles ======== //
   const baseStyles = StyleSheet.create({

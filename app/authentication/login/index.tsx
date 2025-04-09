@@ -8,21 +8,34 @@ import {
     KeyboardAvoidingView,
     ScrollView,
     Platform,
+    Alert,
   } from "react-native";
-  import { useNavigation, Link, useRouter } from "expo-router";
-  import { useEffect, useMemo } from "react";
+  import { useRouter } from "expo-router";
+  import { useState } from "react";
+import { supabase } from "../../../config/supabaseClient";
   
   export default function Login() {
     const colorScheme = useColorScheme();
     const router = useRouter();
-    const navigation = useNavigation();
   
-    useEffect(() => {
-      navigation.setOptions({ headerShown: true });
-    }, [navigation]);
+    const [email, setEmail] = useState("");
+    const [password, setPassword] = useState("");
   
-    // Select theme dynamically
-    const theme = useMemo(() => (colorScheme === "light" ? styles.light : styles.dark), [colorScheme]);
+    // Handle email/password login
+    const handleLogin = async () => {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+  
+      if (error) {
+        Alert.alert("Login Failed", error.message);
+      } else {
+        router.push("/feed");
+      }
+    };
+  
+    const theme = colorScheme === "light" ? styles.light : styles.dark;
   
     return (
       <KeyboardAvoidingView
@@ -36,16 +49,18 @@ import {
           <View style={theme.container}>
             <View style={theme.textContainer}>
               <Text style={theme.header}>Welcome Back!</Text>
-              <Text style={theme.subheader}>There's a lot to catch up to.</Text>
+              <Text style={theme.subheader}>Log in to your account</Text>
             </View>
   
             <View style={theme.credentialsContainer}>
               <View style={theme.textInputContainer}>
                 <TextInput
                   style={theme.textInput}
-                  placeholder="Phone, email, or username"
+                  placeholder="Email"
                   placeholderTextColor="#8E8E8E"
                   autoCapitalize="none"
+                  value={email}
+                  onChangeText={setEmail}
                 />
                 <TextInput
                   style={theme.textInput}
@@ -53,25 +68,14 @@ import {
                   placeholderTextColor="#8E8E8E"
                   secureTextEntry={true}
                   autoCapitalize="none"
+                  value={password}
+                  onChangeText={setPassword}
                 />
               </View>
   
-              <Text style={theme.text}>
-                No Account?{" "}
-                <Link href="/authentication/register" style={theme.link}>
-                  Create one here
-                </Link>
-              </Text>
-            </View>
-  
-            <View style={theme.footer}>
-              <Text style={theme.text}>Forgot your password?</Text>
-              <TouchableOpacity
-  onPress={() => router.push("/feed")}
-  style={theme.button}
->
-  <Text style={theme.buttonText}>Login</Text>
-</TouchableOpacity>
+              <TouchableOpacity onPress={handleLogin} style={theme.button}>
+                <Text style={theme.buttonText}>Login</Text>
+              </TouchableOpacity>
             </View>
           </View>
         </ScrollView>
@@ -79,6 +83,7 @@ import {
     );
   }
   
+  // Add your styles here (same as before)
   // ======== Styles ======== //
   const baseStyles = StyleSheet.create({
     container: {

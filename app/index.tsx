@@ -5,18 +5,58 @@ import {
   Image,
   TouchableOpacity,
   useColorScheme,
+  Alert,
+  Platform,
 } from "react-native";
-import { useNavigation, Link, useRouter } from "expo-router";
+import { useRouter } from "expo-router";
 import { useEffect, useMemo } from "react";
+import * as Google from "expo-auth-session/providers/google";
+import * as WebBrowser from "expo-web-browser";
+import { supabase } from "../config/supabaseClient";
+
+WebBrowser.maybeCompleteAuthSession();
 
 export default function Index() {
   const colorScheme = useColorScheme();
   const router = useRouter();
-  const navigation = useNavigation();
 
+  // Google OAuth configuration
+  const [request, response, promptAsync] = Google.useAuthRequest({
+    clientId: Platform.select({
+      android: process.env.GOOGLE_CLIENT_ID_ANDROID,
+      default: process.env.GOOGLE_CLIENT_ID_WEB,
+    }),
+  });
+
+  // Handle Google OAuth response
   useEffect(() => {
-    navigation.setOptions({ headerShown: true });
-  }, [navigation]);
+    if (response?.type === "success") {
+      const { authentication } = response;
+      if (authentication) {
+        handleGoogleLogin(authentication.accessToken);
+      }
+    }
+  }, [response]);
+
+  interface GoogleLoginResponse {
+    data: any; // Replace `any` with the appropriate type if known
+    error: { message: string } | null;
+  }
+
+  const handleGoogleLogin = async (accessToken: string): Promise<void> => {
+    const { data, error }: GoogleLoginResponse = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        accessToken,
+      },
+    });
+
+    if (error) {
+      Alert.alert("Error", error.message);
+    } else {
+      router.push("/feed");
+    }
+  };
 
   // Select theme dynamically
   const theme = useMemo(() => (colorScheme === "light" ? styles.light : styles.dark), [colorScheme]);
@@ -31,7 +71,11 @@ export default function Index() {
       </View>
 
       <View style={theme.buttonContainer}>
-        <TouchableOpacity style={theme.button}>
+        <TouchableOpacity
+          style={theme.button}
+          onPress={() => promptAsync()}
+          disabled={!request}
+        >
           <Image style={theme.buttonLogo} source={googleLogo} />
           <Text style={theme.buttonText}>Continue with Google</Text>
         </TouchableOpacity>
@@ -48,16 +92,18 @@ export default function Index() {
 
         <Text style={theme.agreement}>
           By signing up, you agree to our{" "}
-          <Link style={theme.link} href="/">Terms</Link>,{" "}
-          <Link style={theme.link} href="/">Privacy Policy</Link>, and{" "}
-          <Link style={theme.link} href="/">Cookie Use</Link>.
+          <Text style={theme.link}>Terms</Text>,{" "}
+          <Text style={theme.link}>Privacy Policy</Text>, and{" "}
+          <Text style={theme.link}>Cookie Use</Text>.
         </Text>
       </View>
 
       <View style={theme.footer}>
         <Text style={theme.text}>
           Already have an account?{" "}
-            <Link href="/authentication/login" style={theme.link}>Log In</Link>
+          <Text onPress={() => router.push("/authentication/login")} style={theme.link}>
+            Log In
+          </Text>
         </Text>
       </View>
     </View>
