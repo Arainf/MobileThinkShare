@@ -1,0 +1,50 @@
+erDiagram
+    USERS {
+        string id PK "Primary Key (UUID)"
+        string name "User's full name"
+        string email "User's email address"
+        string password "Hashed password"
+        string profile_picture "URL to profile picture"
+        datetime created_at "Account creation timestamp"
+        datetime updated_at "Last updated timestamp"
+    }
+
+    POSTS {
+        string id PK "Primary Key (UUID)"
+        string user_id FK "Foreign Key to USERS(id)"
+        string content "Text content of the post"
+        datetime created_at "Post creation timestamp"
+        datetime updated_at "Last updated timestamp"
+    }
+
+    COMMENTS {
+        string id PK "Primary Key (UUID)"
+        string post_id FK "Foreign Key to POSTS(id)"
+        string user_id FK "Foreign Key to USERS(id)"
+        string content "Text content of the comment"
+        datetime created_at "Comment creation timestamp"
+        datetime updated_at "Last updated timestamp"
+    }
+
+    LIKES {
+        string id PK "Primary Key (UUID)"
+        string post_id FK "Foreign Key to POSTS(id)"
+        string user_id FK "Foreign Key to USERS(id)"
+        datetime created_at "Like creation timestamp"
+    }
+
+    MEDIA {
+        string id PK "Primary Key (UUID)"
+        string post_id FK "Foreign Key to POSTS(id)"
+        string url "URL to the media file"
+        string type "Type of media (e.g., image, video)"
+        datetime created_at "Media upload timestamp"
+    }
+
+    %% Relationships
+    USERS ||--o{ POSTS : "creates"
+    USERS ||--o{ COMMENTS : "writes"
+    USERS ||--o{ LIKES : "likes"
+    POSTS ||--o{ COMMENTS : "has"
+    POSTS ||--o{ LIKES : "has"
+    POSTS ||--o{ MEDIA : "contains"

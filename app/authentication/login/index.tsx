@@ -67,11 +67,11 @@ import {
             <View style={theme.footer}>
               <Text style={theme.text}>Forgot your password?</Text>
               <TouchableOpacity
-                onPress={() => router.push("/authentication/register")}
-                style={theme.button}
-              >
-                <Text style={theme.buttonText}>Login</Text>
-              </TouchableOpacity>
+  onPress={() => router.push("/feed")}
+  style={theme.button}
+>
+  <Text style={theme.buttonText}>Login</Text>
+</TouchableOpacity>
             </View>
           </View>
         </ScrollView>

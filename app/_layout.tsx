@@ -2,7 +2,7 @@ import { Stack, useSegments } from "expo-router";
 import { useFonts } from "expo-font";
 import * as SplashScreen from "expo-splash-screen";
 import { useEffect, useState } from "react";
-import { Modal, View, ActivityIndicator, StyleSheet } from "react-native";
+import { Modal, View, StyleSheet } from "react-native";
 import LottieView from "lottie-react-native";
 import Header from "@/components/header";
 import AuthHeader from "@/components/authHeader";
@@ -25,6 +25,12 @@ export default function RootLayout() {
   }, [loaded, error]);
 
   useEffect(() => {
+    // Disable loading for the "feed" section
+    if (segment[0] === "feed") {
+      setLoading(false);
+      return;
+    }
+
     setLoading(true);
     const timeout = setTimeout(() => setLoading(false), 500);
     return () => clearTimeout(timeout);
@@ -42,27 +48,40 @@ export default function RootLayout() {
   return (
     <>
       {/* Modal for Loading Screen */}
-      <Modal visible={loading}  animationType="fade">
-        <View style={styles.modalContainer}>
-          <LottieView
-                  source={require("../assets/animation/Animation - 1744164613483.json")} // Replace with your animation file
-                  autoPlay
-                  loop
-                  style={{ width: 100, height: 100 }}
-                />
-        </View>
-      </Modal>
+      {loading && (
+        <Modal visible={loading} animationType="fade" transparent>
+          <View style={styles.modalContainer}>
+            <LottieView
+              source={require("../assets/animation/Animation - 1744164613483.json")} // Replace with your animation file
+              autoPlay
+              loop
+              style={{ width: 100, height: 100 }}
+            />
+          </View>
+        </Modal>
+      )}
 
       {/* Main Stack Navigator */}
       <Stack
         screenOptions={{
-          header: () =>
-            !segment[0] || segment[0] === "_sitemap" ? <Header /> : <AuthHeader />,
+          header: () => {
+            // Exclude headers for the "feed" section
+            if (segment[0] === "feed") {
+              return null;
+            }
+            // Show AuthHeader for authentication routes
+            if (segment[0] === "authentication") {
+              return <AuthHeader />;
+            }
+            // Show default Header for other routes
+            return <Header />;
+          },
         }}
       >
         <Stack.Screen name="index" />
         <Stack.Screen name="authentication/login/index" />
         <Stack.Screen name="authentication/register/index" />
+        <Stack.Screen name="feed/index" />
       </Stack>
     </>
   );
@@ -71,7 +90,7 @@ export default function RootLayout() {
 const styles = StyleSheet.create({
   modalContainer: {
     flex: 1,
-    backgroundColor: "white", // Semi-transparent background
+    backgroundColor: "rgba(0, 0, 0, 0.5)", // Semi-transparent background
     justifyContent: "center",
     alignItems: "center",
   },
