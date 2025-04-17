@@ -1,0 +1,8 @@
+{
+	"editor.formatOnSave": true,
+	"prettier.bracketSameLine": true,
+	"prettier.tabWidth": 8,
+	"prettier.useTabs": true,
+	"editor.formatOnType": false,
+	"editor.formatOnPaste": true
+}
