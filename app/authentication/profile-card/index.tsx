@@ -4,8 +4,11 @@ import {LinearGradient} from 'expo-linear-gradient'
 import * as ImagePicker from 'expo-image-picker'
 import {supabase} from '@/config/supabaseClient'
 import {BlurView} from 'expo-blur'
+import {useRouter} from 'expo-router'
+import {decode} from 'base64-arraybuffer'
 
 export default function ProfileCard() {
+	const router = useRouter()
 	const [profileText, setProfileText] = useState('ThinkShare')
 	const defaultImage = require('../../../assets/images/defaultPicture.png')
 	const [backgroundImage, setBackgroundImage] = useState<string | null>(
@@ -39,13 +42,65 @@ export default function ProfileCard() {
 
 	const handleSave = async () => {
 		try {
-			// Save profileText, backgroundImage, and profileImage to the database
+			// Upload background image to Supabase bucket
+			let backgroundImageUrl = null
+			if (backgroundImage && backgroundImage !== Image.resolveAssetSource(defaultImage).uri) {
+				const response = await fetch(backgroundImage) // Fetch the image
+				if (!response.ok) {
+					throw new Error('Failed to fetch the background image')
+				}
+				const blob = await response.blob() // Convert to blob
+				const base64Data = await blobToBase64(blob) // Convert blob to Base64
+
+				const backgroundResponse = await supabase.storage
+					.from('profiles-images') // Replace with your bucket name
+					.upload(`backgrounds/${Date.now()}_background.jpeg`, decode(base64Data), {
+						contentType: 'image/jpeg' // Specify the content type
+					})
+
+				if (backgroundResponse.error) {
+					throw new Error('Failed to upload background image')
+				}
+
+				// Get the public URL of the uploaded background image
+				backgroundImageUrl = supabase.storage
+					.from('profiles-images')
+					.getPublicUrl(backgroundResponse.data.path).data.publicUrl
+			}
+
+			// Upload profile image to Supabase bucket
+			let profileImageUrl = null
+			if (profileImage) {
+				const response = await fetch(profileImage) // Fetch the image
+				if (!response.ok) {
+					throw new Error('Failed to fetch the profile image')
+				}
+				const blob = await response.blob() // Convert to blob
+				const base64Data = await blobToBase64(blob) // Convert blob to Base64
+
+				const profileResponse = await supabase.storage
+					.from('profiles-images') // Replace with your bucket name
+					.upload(`profiles/${Date.now()}_profile.jpeg`, decode(base64Data), {
+						contentType: 'image/jpeg' // Specify the content type
+					})
+
+				if (profileResponse.error) {
+					throw new Error('Failed to upload profile image')
+				}
+
+				// Get the public URL of the uploaded profile image
+				profileImageUrl = supabase.storage
+					.from('profiles-images')
+					.getPublicUrl(profileResponse.data.path).data.publicUrl
+			}
+
+			// Save profileText, backgroundImageUrl, and profileImageUrl to the database
 			const {data, error} = await supabase
 				.from('profiles') // Replace with your table name
 				.update({
 					profile_text: profileText,
-					background_image: backgroundImage,
-					profile_image: profileImage
+					portait_banner: backgroundImageUrl,
+					profile_image: profileImageUrl
 				})
 				.eq('id', (await supabase.auth.getUser()).data?.user?.id) // Match the logged-in user's ID
 
@@ -60,13 +115,22 @@ export default function ProfileCard() {
 		}
 	}
 
+	// Helper function to convert Blob to Base64
+	const blobToBase64 = (blob: Blob): Promise<string> => {
+		return new Promise((resolve, reject) => {
+			const reader = new FileReader()
+			reader.onloadend = () => resolve(reader.result as string)
+			reader.onerror = reject
+			reader.readAsDataURL(blob)
+		})
+	}
 	return (
 		<View style={styles.container}>
 			<View style={styles.textContainer}>
 				<Text style={styles.header}>Let's make some beautiful "profile-cards"</Text>
 			</View>
 			{/* Profile Card */}
-			<TouchableOpacity onPress={handleUploadBackground} style={styles.profileCard}>
+			<View style={styles.profileCard}>
 				{/* Background Image */}
 				<Image source={{uri: backgroundImage || defaultImage}} style={styles.backgroundImage} />
 				{/* Gradient Overlay */}
@@ -82,6 +146,8 @@ export default function ProfileCard() {
 					onChangeText={setProfileText}
 					placeholder="Enter your profile text"
 					placeholderTextColor="#ccc"
+					multiline={true}
+					textAlign="center"
 				/>
 				{/* Profile Image */}
 				<TouchableOpacity onPress={handleUploadProfileImage}>
@@ -93,7 +159,7 @@ export default function ProfileCard() {
 						</View>
 					)}
 				</TouchableOpacity>
-			</TouchableOpacity>
+			</View>
 
 			<View
 				style={{
@@ -142,7 +208,8 @@ const styles = StyleSheet.create({
 		justifyContent: 'space-between',
 		alignItems: 'center',
 		position: 'relative',
-		backgroundColor: '#374151'
+		backgroundColor: '#374151',
+		boxShadow: '0px 9.774px 19.06px 0px rgba(0, 0, 0, 0.25)'
 	},
 	backgroundImage: {
 		position: 'absolute',
@@ -164,8 +231,10 @@ const styles = StyleSheet.create({
 		color: '#fff',
 		fontSize: 25,
 		margin: 20,
-		textAlign: 'center',
-		zIndex: 1 // Ensure it is above the background
+		overflow: 'visible',
+		zIndex: 1,
+		width: 200,
+		height: 100
 	},
 	profileImage: {
 		width: 56,

@@ -48,8 +48,7 @@ export default function Login() {
 					router.push('/authentication/profile-card')
 				} else {
 					// Redirect to the feed route otherwise
-					// router.push('/feed')
-					router.push('/authentication/profile-card')
+					router.push('/feed')
 				}
 			}
 		}
