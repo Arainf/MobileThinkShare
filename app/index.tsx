@@ -41,9 +41,11 @@ export default function Index() {
 
 			if (session?.session) {
 				// If a session exists, redirect to the Feed screen
-				router.push('/feed')
+				// router.push('/feed')
+				router.push('/authentication/profile-card')
 			} else {
 				// If no session exists, show the login/register screen
+				router.push('/authentication/profile-card')
 				setIsLoading(false)
 			}
 		}

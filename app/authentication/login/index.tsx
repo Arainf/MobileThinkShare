@@ -21,7 +21,6 @@ export default function Login() {
 	const [email, setEmail] = useState('')
 	const [password, setPassword] = useState('')
 
-	// Handle email/password login
 	const handleLogin = async () => {
 		const {data, error} = await supabase.auth.signInWithPassword({
 			email,
@@ -32,13 +31,29 @@ export default function Login() {
 			Alert.alert('Login Failed', error.message)
 		} else {
 			const user = data.user // Get the logged-in user's details
-			console.log('Logged-in user:', user) // Debugging: Check the user object
 
-			// Redirect to the feed
-			router.push('/feed')
+			// Fetch the user's profile to check if it's their first login
+			const {data: profile, error: profileError} = await supabase
+				.from('profiles') // Replace with your table name
+				.select('is_first_login')
+				.eq('id', user.id) // Match the user_id with the logged-in user's ID
+				.single()
+
+			if (profileError) {
+				console.error('Error fetching profile:', profileError)
+				Alert.alert('Error', 'Could not fetch user profile.')
+			} else {
+				if (profile.is_first_login) {
+					// Redirect to the profile-card route if it's the user's first login
+					router.push('/authentication/profile-card')
+				} else {
+					// Redirect to the feed route otherwise
+					// router.push('/feed')
+					router.push('/authentication/profile-card')
+				}
+			}
 		}
 	}
-
 	const theme = colorScheme === 'light' ? styles.light : styles.dark
 
 	return (

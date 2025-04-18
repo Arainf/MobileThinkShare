@@ -80,7 +80,7 @@ export default function Feed() {
 					<View style={styles.profileContainer}>
 						<Text style={styles.profileText}>{displayName}</Text>
 					</View>
-					<View>
+					<View style={styles.button}>
 						<Text>Add Notes</Text>
 					</View>
 				</View>
@@ -108,7 +108,7 @@ const styles = StyleSheet.create({
 	profileContainer: {
 		width: 40,
 		height: 40,
-		borderRadius: 20,
+		borderRadius: 18,
 		backgroundColor: '#3b82f6',
 		justifyContent: 'center',
 		alignItems: 'center',
@@ -123,5 +123,8 @@ const styles = StyleSheet.create({
 		flex: 1,
 		justifyContent: 'center',
 		alignItems: 'center'
+	},
+	button: {
+		backgroundColor: 'blue'
 	}
 })

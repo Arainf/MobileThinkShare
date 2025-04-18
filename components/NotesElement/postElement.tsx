@@ -83,7 +83,7 @@ const styles = StyleSheet.create({
 	profileContainer: {
 		width: 40,
 		height: 40,
-		borderRadius: 20,
+		borderRadius: 18,
 		backgroundColor: '#3b82f6',
 		justifyContent: 'center',
 		alignItems: 'center',
