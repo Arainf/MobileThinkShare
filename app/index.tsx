@@ -44,7 +44,7 @@ export default function Index() {
 				router.push('/feed')
 			} else {
 				// If no session exists, show the login/register screen
-				router.push('/authentication/login')
+				router.push('/')
 				setIsLoading(false)
 			}
 		}

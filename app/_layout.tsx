@@ -4,8 +4,7 @@ import * as SplashScreen from 'expo-splash-screen'
 import {useEffect, useState} from 'react'
 import {Modal, View, StyleSheet} from 'react-native'
 import LottieView from 'lottie-react-native'
-import Header from '@/components/header'
-import AuthHeader from '@/components/authHeader'
+import Header from '@/components/header/header'
 
 SplashScreen.preventAutoHideAsync()
 
@@ -71,17 +70,22 @@ export default function RootLayout() {
 						}
 						// Show AuthHeader for authentication routes
 						if (segment[0] === 'authentication') {
-							return <AuthHeader />
+							return <Header isAuthHeader={true} />
+						}
+						if (segment[0] === 'profiles') {
+							return
 						}
 						// Show default Header for other routes
-						return <Header />
-					}
+						return <Header showLogo={true} />
+					},
+					animation: 'slide_from_right' // Use the custom header
 				}}>
 				<Stack.Screen name="index" />
 				<Stack.Screen name="authentication/login/index" />
 				<Stack.Screen name="authentication/register/index" />
 				<Stack.Screen name="feed/index" />
 				<Stack.Screen name="authentication/profile-card/index" />
+				<Stack.Screen name="profiles/[id]" />
 			</Stack>
 		</>
 	)

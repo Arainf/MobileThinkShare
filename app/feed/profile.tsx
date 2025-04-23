@@ -20,9 +20,21 @@ export default function Profile() {
 		}
 	}
 
+	const handleProfile = async () => {
+		try {
+			router.push('/authentication/profile-card')
+		} catch (err) {
+			console.error('Logout error:', err)
+			Alert.alert('Error', 'An unexpected error occurred.')
+		}
+	}
+
 	return (
 		<View style={styles.container}>
 			<Text style={styles.text}>This is your profile!</Text>
+			<TouchableOpacity style={styles.logoutButton} onPress={handleProfile}>
+				<Text style={styles.logoutButtonText}>Profile</Text>
+			</TouchableOpacity>
 			<TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
 				<Text style={styles.logoutButtonText}>Log Out</Text>
 			</TouchableOpacity>

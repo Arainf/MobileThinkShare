@@ -1,4 +1,4 @@
-import {View, Text, StyleSheet, TouchableOpacity} from 'react-native'
+import {View, Text, StyleSheet, TouchableOpacity, Image, useColorScheme} from 'react-native'
 import {Ionicons} from '@expo/vector-icons'
 import {useSegments, useNavigation} from 'expo-router'
 import {useRouter} from 'expo-router'
@@ -13,10 +13,11 @@ function getInitials(fullName: string): string {
 	return initials.join('')
 }
 
-export default function FeedHeader() {
+export default function Header({isAuthHeader = false, showLogo = false}: {isAuthHeader?: boolean; showLogo?: boolean}) {
 	const router = useRouter()
 	const segments = useSegments()
 	const navigation = useNavigation()
+	const colorScheme = useColorScheme()
 
 	// Determine the title based on the current route
 	const title = (() => {
@@ -26,17 +27,54 @@ export default function FeedHeader() {
 	})()
 
 	// Check if the current page is not the home page
-	const isHomePage = segments.length === 1 || segments[1] === 'index'
+	const isHomePage = segments.length === 1
+
+	// State for user initials (used in authHeader)
+	const [userInitials, setUserInitials] = useState<string>('')
+
+	// Logo for the original header
+	const thinkshareLogo =
+		colorScheme === 'light'
+			? require('../../assets/icons/white-mode-3x.png')
+			: require('../../assets/icons/dark-mode-3x.png')
+
+	useEffect(() => {
+		if (isAuthHeader) {
+			// Fetch user data for authHeader
+			const fetchUserData = async () => {
+				const {data: session} = await supabase.auth.getSession()
+				if (session?.session) {
+					const userId = session.session.user.id
+					const {data, error} = await supabase
+						.from('profiles')
+						.select('full_name')
+						.eq('id', userId)
+						.single()
+
+					if (!error && data?.full_name) {
+						setUserInitials(getInitials(data.full_name))
+					}
+				}
+			}
+			fetchUserData()
+		}
+	}, [isAuthHeader])
 
 	return (
 		<View style={styles.container}>
-			{/* Back Button or Profile Icon */}
+			{/* Left Section */}
 			<View style={styles.leftContainer}>
 				{!isHomePage ? (
 					<TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
 						<Ionicons name="arrow-back-outline" size={24} color="#374151" />
 						<Text style={styles.backText}>Home</Text>
 					</TouchableOpacity>
+				) : isAuthHeader ? (
+					<View style={styles.profileContainer}>
+						<Text style={styles.profileInitials}>{userInitials}</Text>
+					</View>
+				) : showLogo ? (
+					<Image style={styles.logo} source={thinkshareLogo} />
 				) : (
 					<View style={styles.iconContainer}>
 						<TouchableOpacity>
@@ -54,19 +92,23 @@ export default function FeedHeader() {
 			{/* Title */}
 			<Text style={styles.title}>{title}</Text>
 
-			{/* Icons */}
+			{/* Right Section */}
 			<View style={styles.iconContainer}>
-				<TouchableOpacity>
-					<Ionicons
-						name="search-outline"
-						size={24}
-						color="#374151"
-						style={styles.iconSpacing}
-					/>
-				</TouchableOpacity>
-				<TouchableOpacity onPress={() => router.push('feed/profile')}>
-					<Ionicons name="grid-outline" size={24} color="#374151" />
-				</TouchableOpacity>
+				{!isAuthHeader && !showLogo && (
+					<>
+						<TouchableOpacity>
+							<Ionicons
+								name="search-outline"
+								size={24}
+								color="#374151"
+								style={styles.iconSpacing}
+							/>
+						</TouchableOpacity>
+						<TouchableOpacity onPress={() => router.push('feed/profile')}>
+							<Ionicons name="grid-outline" size={24} color="#374151" />
+						</TouchableOpacity>
+					</>
+				)}
 			</View>
 		</View>
 	)
@@ -85,7 +127,8 @@ const styles = StyleSheet.create({
 	},
 	leftContainer: {
 		flexDirection: 'row',
-		alignItems: 'center'
+		alignItems: 'center',
+		zIndex: 10
 	},
 	backButton: {
 		flexDirection: 'row',
@@ -113,5 +156,23 @@ const styles = StyleSheet.create({
 	},
 	iconSpacing: {
 		marginHorizontal: 12
+	},
+	profileContainer: {
+		width: 40,
+		height: 40,
+		borderRadius: 20,
+		backgroundColor: '#3b82f6',
+		justifyContent: 'center',
+		alignItems: 'center'
+	},
+	profileInitials: {
+		color: '#fff',
+		fontSize: 16,
+		fontWeight: 'bold'
+	},
+	logo: {
+		width: 50,
+		height: 50,
+		resizeMode: 'contain'
 	}
 })

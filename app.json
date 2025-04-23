@@ -1,56 +1,56 @@
 {
-  "expo": {
-    "name": "mobilethinkshare",
-    "slug": "mobilethinkshare",
-    "version": "1.0.0",
-    "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
-    "scheme": "com.rainingalltheway.mobilethinkshare",
-    "userInterfaceStyle": "automatic",
-    "newArchEnabled": true,
-    "ios": {
-      "supportsTablet": true,
-      "bundleIdentifier": "com.rainingalltheway.mobilethinkshare",
-      "infoPlist": {
-        "ITSAppUsesNonExemptEncryption": false
-      }
-    },
-    "android": {
-      "adaptiveIcon": {
-        "foregroundImage": "./assets/images/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
-      },
-      "package": "com.rainingalltheway.mobilethinkshare"
-    },
-    "web": {
-      "bundler": "metro",
-      "output": "static",
-      "favicon": "./assets/images/favicon.png"
-    },
-    "plugins": [
-      "expo-router",
-      [
-        "expo-splash-screen",
-        {
-          "image": "./assets/images/splash-icon.png",
-          "imageWidth": 200,
-          "resizeMode": "contain",
-          "backgroundColor": "#ffffff"
-        }
-      ],
-      "expo-secure-store"
-    ],
-    "experiments": {
-      "typedRoutes": true
-    },
-    "extra": {
-      "router": {
-        "origin": false
-      },
-      "eas": {
-        "projectId": "bbb4e20b-d828-4020-a901-7f7286571255"
-      }
-    },
-    "owner": "rainingalltheway"
-  }
+	"expo": {
+		"name": "ThinkShare",
+		"slug": "mobilethinkshare",
+		"version": "1.0.0",
+		"orientation": "portrait",
+		"icon": "./assets/icons/adaptive-icon.png",
+		"scheme": "com.rainingalltheway.mobilethinkshare",
+		"userInterfaceStyle": "automatic",
+		"newArchEnabled": true,
+		"ios": {
+			"supportsTablet": true,
+			"bundleIdentifier": "com.rainingalltheway.mobilethinkshare",
+			"infoPlist": {
+				"ITSAppUsesNonExemptEncryption": false
+			}
+		},
+		"android": {
+			"adaptiveIcon": {
+				"foregroundImage": "./assets/icons/adaptive-icon.png",
+				"backgroundColor": "#ffffff"
+			},
+			"package": "com.rainingalltheway.mobilethinkshare"
+		},
+		"web": {
+			"bundler": "metro",
+			"output": "static",
+			"favicon": "./assets/icons/adaptive-icon.png"
+		},
+		"plugins": [
+			"expo-router",
+			[
+				"expo-splash-screen",
+				{
+					"image": "./assets/icons/splash-icon-dark.png",
+					"imageWidth": 200,
+					"resizeMode": "contain",
+					"backgroundColor": "#ffffff"
+				}
+			],
+			"expo-secure-store"
+		],
+		"experiments": {
+			"typedRoutes": true
+		},
+		"extra": {
+			"router": {
+				"origin": false
+			},
+			"eas": {
+				"projectId": "bbb4e20b-d828-4020-a901-7f7286571255"
+			}
+		},
+		"owner": "rainingalltheway"
+	}
 }
