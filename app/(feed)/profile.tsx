@@ -1,4 +1,4 @@
-import {View, Text, StyleSheet, TouchableOpacity, Alert} from 'react-native'
+import {View, Text, StyleSheet, TouchableOpacity, Alert, SafeAreaView} from 'react-native'
 import {useRouter} from 'expo-router'
 import {supabase} from '@/config/supabaseClient'
 
@@ -22,7 +22,7 @@ export default function Profile() {
 
 	const handleProfile = async () => {
 		try {
-			router.push('/authentication/profile-card')
+			router.push('/(auth)/profile-card')
 		} catch (err) {
 			console.error('Logout error:', err)
 			Alert.alert('Error', 'An unexpected error occurred.')
@@ -30,15 +30,17 @@ export default function Profile() {
 	}
 
 	return (
-		<View style={styles.container}>
-			<Text style={styles.text}>This is your profile!</Text>
-			<TouchableOpacity style={styles.logoutButton} onPress={handleProfile}>
-				<Text style={styles.logoutButtonText}>Profile</Text>
-			</TouchableOpacity>
-			<TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-				<Text style={styles.logoutButtonText}>Log Out</Text>
-			</TouchableOpacity>
-		</View>
+		<SafeAreaView>
+			<View style={styles.container}>
+				<Text style={styles.text}>This is your profile!</Text>
+				<TouchableOpacity style={styles.logoutButton} onPress={handleProfile}>
+					<Text style={styles.logoutButtonText}>Profile</Text>
+				</TouchableOpacity>
+				<TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+					<Text style={styles.logoutButtonText}>Log Out</Text>
+				</TouchableOpacity>
+			</View>
+		</SafeAreaView>
 	)
 }
 

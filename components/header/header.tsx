@@ -4,6 +4,7 @@ import {useSegments, useNavigation} from 'expo-router'
 import {useRouter} from 'expo-router'
 import {supabase} from '@/config/supabaseClient'
 import {useEffect, useState} from 'react'
+import {SafeAreaView, SafeAreaProvider, SafeAreaInsetsContext, useSafeAreaInsets} from 'react-native-safe-area-context'
 
 function getInitials(fullName: string): string {
 	if (!fullName) return ''
@@ -67,7 +68,7 @@ export default function Header({isAuthHeader = false, showLogo = false}: {isAuth
 				{!isHomePage ? (
 					<TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
 						<Ionicons name="arrow-back-outline" size={24} color="#374151" />
-						<Text style={styles.backText}>Home</Text>
+						<Text style={styles.backText}>Back</Text>
 					</TouchableOpacity>
 				) : isAuthHeader ? (
 					<View style={styles.profileContainer}>
@@ -104,7 +105,7 @@ export default function Header({isAuthHeader = false, showLogo = false}: {isAuth
 								style={styles.iconSpacing}
 							/>
 						</TouchableOpacity>
-						<TouchableOpacity onPress={() => router.push('feed/profile')}>
+						<TouchableOpacity onPress={() => router.push('/(feed)/profile')}>
 							<Ionicons name="grid-outline" size={24} color="#374151" />
 						</TouchableOpacity>
 					</>

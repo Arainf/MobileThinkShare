@@ -1,4 +1,6 @@
-import React, {useEffect, useState, useRef} from 'react' // Import useRef
+'use client'
+import {StatusBar} from 'expo-status-bar'
+import {useEffect, useState, useRef} from 'react'
 import {
 	StyleSheet,
 	Text,
@@ -9,20 +11,22 @@ import {
 	FlatList,
 	Dimensions,
 	SafeAreaView,
-	Animated // Import Animated
+	Animated
 } from 'react-native'
 import {useRouter, useLocalSearchParams} from 'expo-router'
 import {supabase} from '@/config/supabaseClient'
 import {LinearGradient} from 'expo-linear-gradient'
-import {Ionicons} from '@expo/vector-icons'
+import {Ionicons, MaterialCommunityIcons, FontAwesome5, Feather} from '@expo/vector-icons'
 import PostElement from '@/components/NotesElement/postElement'
 import {DATA} from '@/assets/sampledata'
+import Svg, {Path} from 'react-native-svg'
+import MaskedView from '@react-native-masked-view/masked-view'
 
 const {height: windowHeight, width: windowWidth} = Dimensions.get('window')
 
 // --- Configurable Header Heights ---
-const INITIAL_HEADER_HEIGHT = windowHeight * 0.7 // Start at 60% of screen height
-const MIN_HEADER_HEIGHT = windowHeight * 0.25 // Shrink down to 15% (adjust as needed)
+const INITIAL_HEADER_HEIGHT = windowHeight * 0.3 // Start at 30% of screen height
+const MIN_HEADER_HEIGHT = windowHeight * 0.25 // Shrink down to 25%
 const HEADER_SCROLL_DISTANCE = INITIAL_HEADER_HEIGHT - MIN_HEADER_HEIGHT
 
 // Use Animated.FlatList
@@ -33,12 +37,13 @@ export default function ProfileDetails() {
 	const {id} = useLocalSearchParams()
 	const [profile, setProfile] = useState<any>(null)
 	const [loading, setLoading] = useState(true)
+	const [activeTab, setActiveTab] = useState('posts')
 
 	// --- Animated Value for Scroll Position ---
 	const scrollY = useRef(new Animated.Value(0)).current
 
 	useEffect(() => {
-		// ... (fetchProfile logic remains the same) ...
+		// Fetch profile data
 		const fetchProfile = async () => {
 			try {
 				const {data, error} = await supabase
@@ -51,7 +56,13 @@ export default function ProfileDetails() {
 					console.error('Error fetching profile:', error)
 					setProfile(null)
 				} else {
-					setProfile(data)
+					// Add mock stats for the UI
+					setProfile({
+						...data,
+						posts: 5,
+						followers: 7,
+						following: 2
+					})
 				}
 			} catch (err) {
 				console.error('Unexpected error:', err)
@@ -74,7 +85,7 @@ export default function ProfileDetails() {
 	const animatedHeaderHeight = scrollY.interpolate({
 		inputRange: [0, HEADER_SCROLL_DISTANCE],
 		outputRange: [INITIAL_HEADER_HEIGHT, MIN_HEADER_HEIGHT],
-		extrapolate: 'clamp' // Important: Prevents shrinking/growing beyond limits
+		extrapolate: 'clamp'
 	})
 
 	// --- Loading State ---
@@ -104,36 +115,87 @@ export default function ProfileDetails() {
 
 	// --- Profile Found State ---
 	return (
-		<SafeAreaView style={styles.safeArea}>
-			<View style={styles.mainContainer}>
-				{/* Animated Header - Positioned Absolutely */}
-				<Animated.View style={[styles.animatedHeaderContainer, {height: animatedHeaderHeight}]}>
-					{/* Background Image */}
+		<View style={styles.mainContainer}>
+			<StatusBar translucent={true} />
+
+			{/* Back Button */}
+			<TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+				<Ionicons name="arrow-back-outline" size={20} color="#fff" />
+			</TouchableOpacity>
+
+			{/* Share Button */}
+			<TouchableOpacity style={styles.shareButton}>
+				<Feather name="share" size={20} color="#fff" />
+			</TouchableOpacity>
+
+			{/* Header with Banner Image */}
+			<View style={[styles.headerContainer]}>
+				<MaskedView
+					style={styles.maskedView}
+					maskElement={
+						<Svg width="100%" height="100%" viewBox="0 0 412 270">
+							<Path
+								d="M412 0C412 6.22236 412 31.7816 412 31.7816V55.6178V269.5H232.756L232.756 236.794C232.756 230.571 228.619 225.527 223.517 225.527H-1L-1 77.0093V46.45C-1 46.45 -1 6.22236 -1 0H65.1602H333.465H412Z"
+								fill="#D9D9D9"
+							/>
+						</Svg>
+					}>
 					{profile.portrait_banner ? (
 						<Image
 							source={{uri: `${profile.portrait_banner}?t=${Date.now()}`}}
-							style={styles.backgroundImage} // Stays filling the animated container
+							style={styles.backgroundImage}
 						/>
 					) : (
 						<View style={[styles.backgroundImage, {backgroundColor: '#374151'}]} />
 					)}
 
-					{/* Gradient Overlays */}
+					{/* Gradient overlay for better text visibility */}
 					<LinearGradient
-						colors={['rgba(0, 0, 0, 0.5)', 'rgba(0, 0, 0, 0)']}
-						style={styles.gradientOverlayTop}
-					/>
-					<LinearGradient
-						colors={['rgba(0, 0, 0, 0)', 'rgba(0, 0, 0, 0.6)']}
-						style={styles.gradientOverlayBottom}
+						colors={['rgba(0,0,0,0.4)', 'transparent', 'rgba(0,0,0,0.5)']}
+						style={styles.gradientOverlay}
 					/>
 
-					{/* Profile Name (Animated Opacity) */}
-					<Text style={styles.profileName}>{profile.full_name}</Text>
+					{/* Bottom container for stats and action buttons */}
+					<View style={styles.bottomMaskedContainer}>
+						{/* Stats Container - Left aligned, smaller fonts */}
+						<View style={styles.statsContainer}>
+							<View style={styles.statItem}>
+								<Text style={styles.statNumber}>{profile.posts}</Text>
+								<Text style={styles.statLabel}>posts</Text>
+							</View>
+							<View style={styles.statItem}>
+								<Text style={styles.statNumber}>
+									{profile.followers}
+								</Text>
+								<Text style={styles.statLabel}>followers</Text>
+							</View>
+							<View style={styles.statItem}>
+								<Text style={styles.statNumber}>
+									{profile.following}
+								</Text>
+								<Text style={styles.statLabel}>following</Text>
+							</View>
+						</View>
 
-					{/* Profile Image & Add Button (Animated Opacity) */}
-					{/* Wrap bottom container in Animated.View to fade it */}
-					<View style={styles.bottomContainer}>
+						{/* Action Buttons Container - Right aligned */}
+						<View style={styles.actionButtonsContainer}>
+							<TouchableOpacity style={styles.editProfileButton}>
+								<Text style={styles.editProfileText}>Edit profile</Text>
+							</TouchableOpacity>
+							<TouchableOpacity style={styles.iconButton}>
+								<Feather name="edit-2" size={16} color="#000" />
+							</TouchableOpacity>
+							<TouchableOpacity style={styles.iconButton}>
+								<Feather name="user-plus" size={16} color="#000" />
+							</TouchableOpacity>
+						</View>
+					</View>
+				</MaskedView>
+			</View>
+			<View style={styles.profileInfoContainer}>
+				{/* Profile Info */}
+				<View style={styles.profileDetailsContainer}>
+					<View style={styles.profileImageAndName}>
 						<View style={styles.profileImageContainer}>
 							{profile.profile_image ? (
 								<Image
@@ -150,43 +212,81 @@ export default function ProfileDetails() {
 										style={
 											styles.profileImagePlaceholderText
 										}>
-										+
+										{profile.full_name?.charAt(0) || 'U'}
 									</Text>
 								</View>
 							)}
 						</View>
-						<TouchableOpacity style={styles.buttonAdd}>
-							<Text style={styles.buttonText}>+ Add Friend</Text>
+						<View style={styles.nameContainer}>
+							<Text style={styles.fullName}>{profile.full_name}</Text>
+							<Text style={styles.username}>
+								@{profile.full_name?.split(' ')[0] || 'user'}
+							</Text>
+						</View>
+					</View>
+
+					{/* Navigation Tabs */}
+					<View style={styles.tabsContainer}>
+						<TouchableOpacity
+							style={[
+								styles.tabButton,
+								activeTab === 'notes' && styles.activeTabButton
+							]}
+							onPress={() => setActiveTab('notes')}>
+							<MaterialCommunityIcons
+								name="note-text-outline"
+								size={24}
+								color={activeTab === 'notes' ? '#3b82f6' : '#9ca3af'}
+							/>
+						</TouchableOpacity>
+						<TouchableOpacity
+							style={[
+								styles.tabButton,
+								activeTab === 'posts' && styles.activeTabButton
+							]}
+							onPress={() => setActiveTab('posts')}>
+							<FontAwesome5
+								name="star"
+								size={22}
+								color={activeTab === 'posts' ? '#3b82f6' : '#9ca3af'}
+							/>
+						</TouchableOpacity>
+						<TouchableOpacity
+							style={[
+								styles.tabButton,
+								activeTab === 'saved' && styles.activeTabButton
+							]}
+							onPress={() => setActiveTab('saved')}>
+							<Ionicons
+								name="trash-outline"
+								size={24}
+								color={activeTab === 'saved' ? '#3b82f6' : '#9ca3af'}
+							/>
 						</TouchableOpacity>
 					</View>
-				</Animated.View>
-
-				{/* Back Button - Positioned Absolutely, above header */}
-				<TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-					<Ionicons name="arrow-back-outline" size={24} color="#3b82f6" />
-				</TouchableOpacity>
-
-				{/* FlatList - Needs top padding matching INITIAL header height */}
-				<AnimatedFlatList // Use the animated version
-					data={DATA}
-					renderItem={({item}) => (
-						<View style={styles.postItemContainer}>
-							<PostElement note={item} />
-						</View>
-					)}
-					keyExtractor={(item) => item.id.toString()}
-					showsVerticalScrollIndicator={true}
-					// *** CRUCIAL FOR LAYOUT ***
-					contentContainerStyle={{paddingTop: INITIAL_HEADER_HEIGHT, paddingBottom: 30}}
-					// *** CRUCIAL FOR ANIMATION ***
-					onScroll={Animated.event(
-						[{nativeEvent: {contentOffset: {y: scrollY}}}],
-						{useNativeDriver: false} // Height animation requires useNativeDriver: false
-					)}
-					scrollEventThrottle={16} // Adjust for performance vs smoothness
-				/>
+				</View>
 			</View>
-		</SafeAreaView>
+
+			{/* Main Content */}
+			<AnimatedFlatList
+				data={DATA}
+				renderItem={({item}) => (
+					<View style={styles.postItemContainer}>
+						<PostElement note={item} />
+					</View>
+				)}
+				keyExtractor={(item) => item.id.toString()}
+				showsVerticalScrollIndicator={false}
+				contentContainerStyle={{
+					paddingTop: INITIAL_HEADER_HEIGHT + 80, // Add extra space for profile info
+					paddingBottom: 30
+				}}
+				onScroll={Animated.event([{nativeEvent: {contentOffset: {y: scrollY}}}], {
+					useNativeDriver: false
+				})}
+				scrollEventThrottle={16}
+			/>
+		</View>
 	)
 }
 
@@ -194,133 +294,227 @@ export default function ProfileDetails() {
 const styles = StyleSheet.create({
 	safeArea: {
 		flex: 1,
-		backgroundColor: '#fff' // Or your app's main background
+		backgroundColor: '#fff'
+	},
+	imageOverlay: {
+		position: 'absolute',
+		bottom: 0,
+		left: 0,
+		right: 0,
+		height: '50%'
 	},
 	mainContainer: {
+		marginTop: -10,
 		flex: 1,
-		backgroundColor: '#f9f9f9' // Background for the list area below header
+		backgroundColor: '#f9f9f9'
 	},
-	animatedHeaderContainer: {
-		position: 'absolute',
+	headerContainer: {
+		height: '30%',
+		position: 'relative',
 		top: 0,
 		left: 0,
 		right: 0,
-		zIndex: 1, // Header below back button, above list initially
-		overflow: 'hidden', // Clip content that overflows during shrink
-		backgroundColor: '#374151', // Fallback background
-		// We animate height directly
-		alignItems: 'center', // Center content like name horizontally
-		justifyContent: 'flex-end' // Align content towards bottom
+		zIndex: 1,
+		overflow: 'hidden'
 	},
-	backButton: {
-		position: 'absolute',
-		top: 15, // Adjust based on SafeAreaView/Notch
-		left: 15,
-		zIndex: 10, // Highest: Above everything
-		backgroundColor: '#fff',
-		width: 44,
-		height: 44,
-		borderRadius: 22,
-		justifyContent: 'center',
-		alignItems: 'center',
-		elevation: 5,
-		shadowColor: '#000',
-		shadowOffset: {width: 0, height: 2},
-		shadowOpacity: 0.2,
-		shadowRadius: 3
+	maskedView: {
+		width: '100%',
+		height: '100%',
+		overflow: 'hidden',
+		position: 'relative'
 	},
 	backgroundImage: {
-		position: 'absolute', // Takes full size of its parent (Animated Header)
+		position: 'absolute',
 		top: 0,
 		left: 0,
 		width: '100%',
 		height: '100%',
 		resizeMode: 'cover'
 	},
-	gradientOverlayTop: {
-		// Covers top part
+	gradientOverlay: {
 		position: 'absolute',
-		left: 0,
-		right: 0,
 		top: 0,
-		height: '50%',
-		zIndex: 1
-	},
-	gradientOverlayBottom: {
-		// Covers bottom part
-		position: 'absolute',
 		left: 0,
 		right: 0,
+		bottom: 0
+	},
+	// New container for bottom elements inside maskedView
+	bottomMaskedContainer: {
+		position: 'absolute',
 		bottom: 0,
-		height: '60%',
-		zIndex: 1
-	},
-	profileName: {
-		// Animated.Text uses this style
-		color: '#fff',
-		fontSize: 36,
-		textAlign: 'center',
-		fontFamily: 'nunitoExtraBold',
-		zIndex: 2, // Above gradients
-		paddingHorizontal: 20
-		// Removed marginBottom, rely on bottomContainer positioning
-	},
-	bottomContainer: {
-		// Animated.View uses this style
-		flexDirection: 'row',
-		justifyContent: 'space-between',
-		alignItems: 'center',
+		left: 0,
+		right: 0,
+		flexDirection: 'column',
 		width: '100%',
-		paddingHorizontal: 20,
-		paddingBottom: 20, // Padding at the very bottom inside the header
-		zIndex: 2, // Above gradients
-		bottom: 0 // Stick to bottom of header
+		paddingHorizontal: 5,
+		paddingBottom: 15
+	},
+	// Updated statsContainer
+	statsContainer: {
+		width: '100%',
+		flexDirection: 'row',
+		justifyContent: 'flex-start',
+		alignItems: 'center',
+		paddingHorizontal: 10,
+		paddingVertical: 20
+	},
+	statItem: {
+		alignItems: 'flex-start',
+		marginRight: 20
+	},
+	statNumber: {
+		fontSize: 14, // Smaller font
+		fontWeight: 'bold',
+		color: '#fff', // Changed to white for visibility on the background
+		textShadowColor: 'rgba(0,0,0,0.5)',
+		textShadowOffset: {width: 1, height: 1},
+		textShadowRadius: 2
+	},
+	statLabel: {
+		fontSize: 10, // Smaller font
+		color: '#f0f0f0', // Changed to light color for visibility
+		textShadowColor: 'rgba(0,0,0,0.5)',
+		textShadowOffset: {width: 1, height: 1},
+		textShadowRadius: 2
+	},
+	// Updated actionButtonsContainer
+	actionButtonsContainer: {
+		width: '100%',
+		flexDirection: 'row',
+		justifyContent: 'flex-end',
+		alignItems: 'flex-end',
+		gap: 10,
+		paddingHorizontal: 2
+	},
+	editProfileButton: {
+		backgroundColor: 'rgba(255, 255, 255, 0.9)',
+		borderRadius: 6,
+		paddingVertical: 6,
+		paddingHorizontal: 12,
+		justifyContent: 'center',
+		alignItems: 'center'
+	},
+	editProfileText: {
+		fontSize: 12,
+		fontWeight: '600',
+		color: '#111'
+	},
+	iconButton: {
+		width: 30,
+		height: 30,
+		borderRadius: 6,
+		backgroundColor: 'rgba(255, 255, 255, 0.9)',
+		justifyContent: 'center',
+		alignItems: 'center'
+	},
+	backButton: {
+		position: 'absolute',
+		top: 50,
+		left: 15,
+		zIndex: 10,
+		width: 36,
+		height: 36,
+		borderRadius: 18,
+		backgroundColor: 'rgba(0,0,0,0.3)',
+		justifyContent: 'center',
+		alignItems: 'center'
+	},
+	shareButton: {
+		position: 'absolute',
+		top: 50,
+		right: 15,
+		zIndex: 10,
+		width: 36,
+		height: 36,
+		borderRadius: 18,
+		backgroundColor: 'rgba(0,0,0,0.3)',
+		justifyContent: 'center',
+		alignItems: 'center'
+	},
+	profileInfoContainer: {
+		marginTop: -52,
+		backgroundColor: '#fff'
+	},
+	profileDetailsContainer: {
+		padding: 15
+	},
+	profileImageAndName: {
+		flexDirection: 'row',
+		alignItems: 'center',
+		marginBottom: 15
 	},
 	profileImageContainer: {
-		width: 60,
-		height: 60,
-		borderRadius: 30,
+		width: 38,
+		height: 38,
+		borderRadius: 25,
 		backgroundColor: '#fff',
 		justifyContent: 'center',
 		alignItems: 'center',
 		overflow: 'hidden',
 		borderWidth: 2,
-		borderColor: '#fff'
+		borderColor: '#fff',
+		marginRight: 12
 	},
-	profileImage: {width: '100%', height: '100%', resizeMode: 'cover'},
+	profileImage: {
+		width: '100%',
+		height: '100%',
+		resizeMode: 'cover'
+	},
 	profileImagePlaceholder: {
 		width: '100%',
 		height: '100%',
 		justifyContent: 'center',
 		alignItems: 'center',
-		backgroundColor: '#ccc'
+		backgroundColor: '#3b82f6'
 	},
-	profileImagePlaceholderText: {fontSize: 30, color: '#fff', fontWeight: 'bold'},
-	buttonAdd: {
-		backgroundColor: 'rgba(255, 255, 255, 0.9)',
-		borderRadius: 18,
+	profileImagePlaceholderText: {
+		fontSize: 20,
+		color: '#fff',
+		fontWeight: 'bold'
+	},
+	nameContainer: {
+		flex: 1
+	},
+	fullName: {
+		fontSize: 12,
+		fontWeight: 'bold',
+		color: '#111'
+	},
+	username: {
+		fontSize: 9,
+		color: '#666'
+	},
+	tabsContainer: {
+		flexDirection: 'row',
+		justifyContent: 'space-around'
+	},
+	tabButton: {
+		flex: 1,
+		alignItems: 'center',
+		paddingVertical: 8
+	},
+	activeTabButton: {
+		borderBottomWidth: 2,
+		borderBottomColor: '#3b82f6'
+	},
+	postItemContainer: {
+		width: '100%',
+		marginBottom: 15
+	},
+	loadingContainer: {
+		flex: 1,
+		justifyContent: 'center',
+		alignItems: 'center'
+	},
+	errorContainer: {
+		flex: 1,
 		justifyContent: 'center',
 		alignItems: 'center',
-		height: 36,
-		paddingHorizontal: 15,
-		shadowColor: '#000',
-		shadowOffset: {width: 0, height: 1},
-		shadowOpacity: 0.15,
-		shadowRadius: 2,
-		elevation: 2
+		paddingHorizontal: 20
 	},
-	buttonText: {fontFamily: 'nunitoBold', fontSize: 13, color: '#333'},
-
-	loadingContainer: {flex: 1, justifyContent: 'center', alignItems: 'center'},
-	errorContainer: {flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 20},
-	errorText: {color: '#d9534f', fontSize: 18, textAlign: 'center'},
-
-	postItemContainer: {
-		// Styles for the list items area
-		width: '100%',
-		alignItems: 'center',
-		paddingHorizontal: 0, // Let PostElement handle its internal padding
-		paddingVertical: 0
-		// backgroundColor is set on mainContainer
+	errorText: {
+		color: '#d9534f',
+		fontSize: 18,
+		textAlign: 'center'
 	}
 })

@@ -49,7 +49,7 @@ export default function Feed() {
 
 		if (!session?.session) {
 			// Redirect to login if no session exists
-			router.push('/authentication/login')
+			router.push('/login')
 			return
 		}
 
@@ -78,7 +78,7 @@ export default function Feed() {
 
 		if (!session?.session) {
 			// Redirect to login if no session exists
-			router.push('/authentication/login')
+			router.push('/login')
 			return
 		}
 
@@ -140,7 +140,7 @@ export default function Feed() {
 			ListHeaderComponent={
 				<>
 					<View style={styles.header}>
-						<View style={{flexDirection: 'row'}}>
+						<View style={{flexDirection: 'row', gap: 10}}>
 							<Link
 								href={{
 									pathname: '/profiles/[id]',
@@ -172,8 +172,6 @@ export default function Feed() {
 						</TouchableOpacity>
 					</View>
 
-					<Text style={styles.textAuthor}>Authors</Text>
-
 					<FlatList
 						data={profiles}
 						renderItem={({item}) => (
@@ -199,21 +197,27 @@ export default function Feed() {
 
 const styles = StyleSheet.create({
 	container: {
-		backgroundColor: '#f9f9f9',
+		backgroundColor: '#dfdfdf',
 		gap: 2
 	},
 	authorContainer: {
 		flexDirection: 'row',
-		gap: 0,
-		padding: 10
+		gap: 10,
+		paddingHorizontal: 10,
+		overflow: 'visible',
+		backgroundColor: '#fff',
+		minWidth: '100%',
+		marginTop: 3
 	},
 	header: {
 		flexDirection: 'row',
-		top: -1,
-		padding: 15,
+		top: 1,
+		zIndex: 1,
+		paddingHorizontal: 15,
 		backgroundColor: '#fff',
 		justifyContent: 'space-between',
-		alignItems: 'center'
+		alignItems: 'center',
+		height: 90
 	},
 	textAuthor: {
 		fontFamily: 'nunitoExtraBold',
@@ -221,13 +225,12 @@ const styles = StyleSheet.create({
 		marginStart: 15
 	},
 	profileContainer: {
-		width: 55,
-		height: 55,
-		borderRadius: 22,
+		width: 50,
+		height: 50,
+		borderRadius: 25,
 		backgroundColor: '#3b82f6',
 		justifyContent: 'center',
-		alignItems: 'center',
-		marginRight: 12
+		alignItems: 'center'
 	},
 	profileText: {
 		color: '#fff',
@@ -238,7 +241,8 @@ const styles = StyleSheet.create({
 	// Text Container
 	textContainer: {
 		flexDirection: 'column',
-		justifyContent: 'center'
+		justifyContent: 'center',
+		alignContent: 'center'
 	},
 	textHeader: {
 		fontFamily: 'nunitoBold',

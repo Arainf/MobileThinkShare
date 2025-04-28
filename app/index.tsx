@@ -7,7 +7,8 @@ import {
 	useColorScheme,
 	Alert,
 	Platform,
-	ActivityIndicator
+	ActivityIndicator,
+	SafeAreaView
 } from 'react-native'
 import {useRouter} from 'expo-router'
 import {useEffect, useMemo, useState} from 'react'
@@ -41,10 +42,10 @@ export default function Index() {
 
 			if (session?.session) {
 				// If a session exists, redirect to the Feed screen
-				router.push('/feed')
+				router.replace('/(feed)')
 			} else {
 				// If no session exists, show the login/register screen
-				router.push('/')
+				// router.push('/')
 				setIsLoading(false)
 			}
 		}
@@ -73,7 +74,7 @@ export default function Index() {
 		if (error) {
 			Alert.alert('Error', error.message)
 		} else {
-			router.push('/feed')
+			router.replace('/(feed)')
 		}
 	}
 
@@ -94,48 +95,50 @@ export default function Index() {
 	}
 
 	return (
-		<View style={theme.container}>
-			<View style={theme.textContainer}>
-				<Text style={theme.header}>It's time to learn new things!</Text>
-			</View>
-
-			<View style={theme.buttonContainer}>
-				<TouchableOpacity
-					style={theme.button}
-					onPress={() => promptAsync()}
-					disabled={!request}>
-					<Image style={theme.buttonLogo} source={googleLogo} />
-					<Text style={theme.buttonText}>Continue with Google</Text>
-				</TouchableOpacity>
-
-				<View style={theme.separatorContainer}>
-					<View style={theme.separatorLine} />
-					<Text style={theme.separatorText}>or</Text>
-					<View style={theme.separatorLine} />
+		<SafeAreaView>
+			<View style={theme.container}>
+				<View style={theme.textContainer}>
+					<Text style={theme.header}>It's time to learn new things!</Text>
 				</View>
 
-				<TouchableOpacity
-					onPress={() => router.push('/authentication/register')}
-					style={theme.button}>
-					<Text style={theme.buttonText}>Create account</Text>
-				</TouchableOpacity>
+				<View style={theme.buttonContainer}>
+					<TouchableOpacity
+						style={theme.button}
+						onPress={() => promptAsync()}
+						disabled={!request}>
+						<Image style={theme.buttonLogo} source={googleLogo} />
+						<Text style={theme.buttonText}>Continue with Google</Text>
+					</TouchableOpacity>
 
-				<Text style={theme.agreement}>
-					By signing up, you agree to our <Text style={theme.link}>Terms</Text>,{' '}
-					<Text style={theme.link}>Privacy Policy</Text>, and{' '}
-					<Text style={theme.link}>Cookie Use</Text>.
-				</Text>
-			</View>
+					<View style={theme.separatorContainer}>
+						<View style={theme.separatorLine} />
+						<Text style={theme.separatorText}>or</Text>
+						<View style={theme.separatorLine} />
+					</View>
 
-			<View style={theme.footer}>
-				<Text style={theme.text}>
-					Already have an account?{' '}
-					<Text onPress={() => router.push('/authentication/login')} style={theme.link}>
-						Log In
+					<TouchableOpacity
+						onPress={() => router.push('/(auth)/register')}
+						style={theme.button}>
+						<Text style={theme.buttonText}>Create account</Text>
+					</TouchableOpacity>
+
+					<Text style={theme.agreement}>
+						By signing up, you agree to our <Text style={theme.link}>Terms</Text>,{' '}
+						<Text style={theme.link}>Privacy Policy</Text>, and{' '}
+						<Text style={theme.link}>Cookie Use</Text>.
 					</Text>
-				</Text>
+				</View>
+
+				<View style={theme.footer}>
+					<Text style={theme.text}>
+						Already have an account?{' '}
+						<Text onPress={() => router.push('/(auth)/login')} style={theme.link}>
+							Log In
+						</Text>
+					</Text>
+				</View>
 			</View>
-		</View>
+		</SafeAreaView>
 	)
 }
 

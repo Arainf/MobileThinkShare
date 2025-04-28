@@ -2,99 +2,102 @@ import {Stack, useSegments} from 'expo-router'
 import {useFonts} from 'expo-font'
 import * as SplashScreen from 'expo-splash-screen'
 import {useEffect, useState} from 'react'
-import {Modal, View, StyleSheet} from 'react-native'
+import {Modal, View, StyleSheet, InteractionManager} from 'react-native'
 import LottieView from 'lottie-react-native'
 import Header from '@/components/header/header'
+import DefaultHeader from '@/components/header'
+import {SafeAreaView, SafeAreaProvider, SafeAreaInsetsContext, useSafeAreaInsets} from 'react-native-safe-area-context'
 
 SplashScreen.preventAutoHideAsync()
 
 export default function RootLayout() {
 	const [loading, setLoading] = useState(false)
-	const segment = useSegments() || []
-	const [loaded, error] = useFonts({
+	const segments = useSegments() || []
+
+	const [fontsLoaded, fontError] = useFonts({
 		nunitoExtraBold: require('../assets/fonts/Nunito/static/Nunito-ExtraBold.ttf'),
 		nunitoBold: require('../assets/fonts/Nunito/static/Nunito-Bold.ttf'),
 		nunitoRegular: require('../assets/fonts/Nunito/static/Nunito-Regular.ttf')
 	})
 
 	useEffect(() => {
-		if (loaded) {
+		if (fontsLoaded) {
 			SplashScreen.hideAsync()
 		}
-	}, [loaded, error])
+	}, [fontsLoaded])
 
 	useEffect(() => {
-		// Disable loading for the "feed" section
-		if (segment[0] === 'feed') {
+		if (segments[0] === '(feed)') {
 			setLoading(false)
 			return
 		}
 
 		setLoading(true)
-		const timeout = setTimeout(() => setLoading(false), 500)
-		return () => clearTimeout(timeout)
-	}, [segment])
+		const interaction = InteractionManager.runAfterInteractions(() => {
+			setLoading(false)
+		})
 
-	if (!loaded) {
-		return null
-	}
+		return () => interaction.cancel()
+	}, [segments])
 
-	if (error) {
-		console.error('Font loading error:', error)
+	if (!fontsLoaded) return null
+	if (fontError) {
+		console.error('Font loading error:', fontError)
 		return null
 	}
 
 	return (
-		<>
-			{/* Modal for Loading Screen */}
+		<SafeAreaProvider>
+			{/* Loading Modal */}
 			{loading && (
 				<Modal visible={loading} animationType="fade" transparent>
 					<View style={styles.modalContainer}>
 						<LottieView
-							source={require('../assets/animation/Animation - 1744164613483.json')} // Replace with your animation file
+							source={require('../assets/animation/Animation - 1744164613483.json')}
 							autoPlay
 							loop
-							style={{width: 100, height: 100}}
+							style={{width: '100%', height: '100%'}}
 						/>
 					</View>
 				</Modal>
 			)}
 
-			{/* Main Stack Navigator */}
-			<Stack
-				screenOptions={{
-					header: () => {
-						// Exclude headers for the "feed" section
-						if (segment[0] === 'feed') {
-							return null
-						}
-						// Show AuthHeader for authentication routes
-						if (segment[0] === 'authentication') {
-							return <Header isAuthHeader={true} />
-						}
-						if (segment[0] === 'profiles') {
-							return
-						}
-						// Show default Header for other routes
-						return <Header showLogo={true} />
-					},
-					animation: 'slide_from_right' // Use the custom header
-				}}>
-				<Stack.Screen name="index" />
-				<Stack.Screen name="authentication/login/index" />
-				<Stack.Screen name="authentication/register/index" />
-				<Stack.Screen name="feed/index" />
-				<Stack.Screen name="authentication/profile-card/index" />
-				<Stack.Screen name="profiles/[id]" />
-			</Stack>
-		</>
+			{/* Main Stack */}
+			{segments[0] === 'profiles' ? (
+				// ❌ No SafeAreaView for profiles
+				<View style={{flex: 1}}>
+					<Stack
+						screenOptions={{
+							animation: 'fade',
+							header: () => null // no header for profile
+						}}
+					/>
+				</View>
+			) : (
+				// ✅ Use SafeAreaView normally
+				<SafeAreaView style={{flex: 1}}>
+					<Stack
+						screenOptions={{
+							animation: 'fade',
+							header: () => {
+								if (segments[0] === '(feed)') return null
+								if (segments[0] === '(auth)') {
+									return <Header isAuthHeader />
+								}
+								return <DefaultHeader />
+							}
+						}}
+					/>
+				</SafeAreaView>
+			)}
+		</SafeAreaProvider>
 	)
 }
 
 const styles = StyleSheet.create({
 	modalContainer: {
 		flex: 1,
-		backgroundColor: 'rgba(0, 0, 0, 0.5)', // Semi-transparent background
+		backgroundColor: 'rgba(0, 0, 0, 0.5)',
 		justifyContent: 'center',
 		alignItems: 'center'
 	}

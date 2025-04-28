@@ -9,7 +9,8 @@ import {
 	ScrollView,
 	Platform,
 	Alert,
-	ActivityIndicator
+	ActivityIndicator,
+	SafeAreaView
 } from 'react-native'
 import {useRouter} from 'expo-router'
 import {useState, memo, useMemo, useCallback} from 'react'
@@ -297,14 +298,14 @@ export default function Register() {
 						)
 						// It's often better to go to a "Check your email" screen or back to login
 						// instead of directly logging them in if confirmation is needed.
-						router.push('/authentication/login')
+						router.push('/login')
 					} else {
 						// Handle unexpected case where there's no error but no user data
 						Alert.alert(
 							'Registration Issue',
 							'Account may have been created, but verification is needed or an issue occurred.'
 						)
-						router.push('/authentication/login')
+						router.push('/login')
 					}
 				}
 			} catch (err) {
@@ -326,73 +327,79 @@ export default function Register() {
 	const buttonTextColor = useMemo(() => (colorScheme === 'light' ? '#FFFFFF' : '#F9FAFB'), [colorScheme])
 
 	return (
-		<KeyboardAvoidingView style={{flex: 1}} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-			<ScrollView contentContainerStyle={{flexGrow: 1}} keyboardShouldPersistTaps="handled">
-				<View style={theme.container}>
-					<Form
-						step={step}
-						name={name}
-						setName={setName}
-						email={email}
-						setEmail={setEmail}
-						password={password}
-						setPassword={setPassword}
-						theme={theme} // Pass whole theme object
-						textColor={textColor}
-						isLoading={isLoading}
-						textError={textError}
-						eyeOpener={eyeToggle}
-						setEyeToggle={setEyeToggle}
-						confirmPassword={confirmPassword}
-						setConfirmPassword={setConfirmPassword}
-					/>
+		<SafeAreaView>
+			<KeyboardAvoidingView
+				style={{flex: 1}}
+				behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+				<ScrollView contentContainerStyle={{flexGrow: 1}} keyboardShouldPersistTaps="handled">
+					<View style={theme.container}>
+						<Form
+							step={step}
+							name={name}
+							setName={setName}
+							email={email}
+							setEmail={setEmail}
+							password={password}
+							setPassword={setPassword}
+							theme={theme} // Pass whole theme object
+							textColor={textColor}
+							isLoading={isLoading}
+							textError={textError}
+							eyeOpener={eyeToggle}
+							setEyeToggle={setEyeToggle}
+							confirmPassword={confirmPassword}
+							setConfirmPassword={setConfirmPassword}
+						/>
 
-					<View
-						style={{
-							flexDirection: 'row',
-							justifyContent: 'center',
-							margin: 20
-						}}>
-						<View style={theme.textLayout}>
-							<Text style={theme.text}>Already have an account? </Text>
-							<Text
-								onPress={() => router.push('/authentication/login')}
-								style={theme.link}>
-								Login here
-							</Text>
-						</View>
-
-						<TouchableOpacity
-							onPress={handleRegister}
-							style={[
-								theme.button,
-								{
-									backgroundColor: buttonBackgroundColor
-								}
-							]} // Dynamic background
-							disabled={isLoading} // Disable button when loading
-						>
-							{isLoading ? (
-								<ActivityIndicator
-									size="small"
-									color={buttonTextColor}
-								/>
-							) : (
-								<Text
-									style={[
-										theme.buttonText,
-										{
-											color: buttonTextColor
-										}
-									]}>
-									{buttonText}
+						<View
+							style={{
+								flexDirection: 'row',
+								justifyContent: 'center',
+								margin: 20
+							}}>
+							<View style={theme.textLayout}>
+								<Text style={theme.text}>
+									Already have an account?{' '}
 								</Text>
-							)}
-						</TouchableOpacity>
+								<Text
+									onPress={() => router.push('/login')}
+									style={theme.link}>
+									Login here
+								</Text>
+							</View>
+
+							<TouchableOpacity
+								onPress={handleRegister}
+								style={[
+									theme.button,
+									{
+										backgroundColor: buttonBackgroundColor
+									}
+								]} // Dynamic background
+								disabled={isLoading} // Disable button when loading
+							>
+								{isLoading ? (
+									<ActivityIndicator
+										size="small"
+										color={buttonTextColor}
+									/>
+								) : (
+									<Text
+										style={[
+											theme.buttonText,
+											{
+												color: buttonTextColor
+											}
+										]}>
+										{buttonText}
+									</Text>
+								)}
+							</TouchableOpacity>
+						</View>
 					</View>
-				</View>
-			</ScrollView>
-		</KeyboardAvoidingView>
+				</ScrollView>
+			</KeyboardAvoidingView>
+		</SafeAreaView>
 	)
 }
 

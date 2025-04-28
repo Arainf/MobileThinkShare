@@ -8,20 +8,25 @@ import {
 	KeyboardAvoidingView,
 	ScrollView,
 	Platform,
-	Alert
+	Alert,
+	ActivityIndicator,
+	SafeAreaView
 } from 'react-native'
 import {useRouter} from 'expo-router'
-import {useState} from 'react'
+import {useState, useMemo} from 'react'
 import {supabase} from '../../../config/supabaseClient'
+import {push} from 'expo-router/build/global-state/routing'
 
 export default function Login() {
 	const colorScheme = useColorScheme()
 	const router = useRouter()
+	const [isloading, setIsLoading] = useState(false)
 
 	const [email, setEmail] = useState('')
 	const [password, setPassword] = useState('')
 
 	const handleLogin = async () => {
+		setIsLoading(true)
 		const {data, error} = await supabase.auth.signInWithPassword({
 			email,
 			password
@@ -44,77 +49,101 @@ export default function Login() {
 				Alert.alert('Error', 'Could not fetch user profile.')
 			} else {
 				if (profile.is_first_login) {
+					setIsLoading(false)
 					// Redirect to the profile-card route if it's the user's first login
-					router.push('/authentication/profile-card')
+					router.push('/profile-card')
 				} else {
 					// Redirect to the feed route otherwise
-					router.push('/feed')
+					router.replace('/(feed)')
 				}
 			}
 		}
 	}
 	const theme = colorScheme === 'light' ? styles.light : styles.dark
+	const buttonBackgroundColor = useMemo(() => {
+		const baseColor = colorScheme === 'light' ? '#3b82f6' : '#8B5CF6'
+		return isloading ? (colorScheme === 'light' ? '#93c5fd' : '#a78bfa') : baseColor // Lighter color when disabled/loading
+	}, [colorScheme, isloading])
 
 	return (
-		<KeyboardAvoidingView style={{flex: 1}} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-			<ScrollView contentContainerStyle={{flexGrow: 1}} keyboardShouldPersistTaps="handled">
-				<View style={theme.container}>
-					<View style={theme.textContainer}>
-						<Text style={theme.header}>Welcome Back!</Text>
-						<Text style={theme.subheader}>Log in to your account</Text>
-					</View>
-
-					<View style={theme.credentialsContainer}>
-						<View>
-							<Text style={theme.label}>Email</Text>
-							<View style={theme.inputWithPrefixContainer}>
-								<TextInput
-									style={theme.textInputPrefixed}
-									placeholder="e.g thinkshare@email.com"
-									placeholderTextColor="#8E8E8E"
-									autoCapitalize="none"
-									value={email}
-									onChangeText={setEmail}
-								/>
-							</View>
+		<SafeAreaView>
+			<KeyboardAvoidingView
+				style={{flex: 1}}
+				behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+				<ScrollView contentContainerStyle={{flexGrow: 1}} keyboardShouldPersistTaps="handled">
+					<View style={theme.container}>
+						<View style={theme.textContainer}>
+							<Text style={theme.header}>Welcome Back!</Text>
+							<Text style={theme.subheader}>Log in to your account</Text>
 						</View>
 
-						<View>
-							<Text style={theme.label}>Password</Text>
-							<View style={theme.inputWithPrefixContainer}>
-								<TextInput
-									style={theme.textInputPrefixed}
-									placeholder="Password"
-									placeholderTextColor="#8E8E8E"
-									secureTextEntry={true}
-									autoCapitalize="none"
-									value={password}
-									onChangeText={setPassword}
-								/>
+						<View style={theme.credentialsContainer}>
+							<View>
+								<Text style={theme.label}>Email</Text>
+								<View style={theme.inputWithPrefixContainer}>
+									<TextInput
+										style={theme.textInputPrefixed}
+										placeholder="e.g thinkshare@email.com"
+										placeholderTextColor="#8E8E8E"
+										autoCapitalize="none"
+										value={email}
+										onChangeText={setEmail}
+									/>
+								</View>
+							</View>
+
+							<View>
+								<Text style={theme.label}>Password</Text>
+								<View style={theme.inputWithPrefixContainer}>
+									<TextInput
+										style={theme.textInputPrefixed}
+										placeholder="Password"
+										placeholderTextColor="#8E8E8E"
+										secureTextEntry={true}
+										autoCapitalize="none"
+										value={password}
+										onChangeText={setPassword}
+									/>
+								</View>
 							</View>
 						</View>
-					</View>
-					<View
-						style={{
-							flexDirection: 'row',
-							justifyContent: 'center',
-							margin: 20
-						}}>
-						<View style={[theme.textLayout]}>
-							<Text style={theme.text}>Don't have an account? </Text>
-							<Text
-								onPress={() => router.push('/authentication/register')}
-								style={theme.link}>
-								Sign up here
-							</Text>
+						<View
+							style={{
+								flexDirection: 'row',
+								justifyContent: 'center',
+								margin: 20
+							}}>
+							<View style={[theme.textLayout]}>
+								<Text style={theme.text}>Don't have an account? </Text>
+								<Text
+									onPress={() => router.push('/register')}
+									style={theme.link}>
+									Sign up here
+								</Text>
+							</View>
+							<TouchableOpacity
+								onPress={handleLogin}
+								style={[
+									theme.button,
+									{
+										backgroundColor: buttonBackgroundColor
+									}
+								]}
+								disabled={isloading}>
+								{isloading ? (
+									<ActivityIndicator
+										size="small"
+										color={'black'}
+									/>
+								) : (
+									<Text style={[theme.buttonText]}>Login</Text>
+								)}
+							</TouchableOpacity>
 						</View>
-						<TouchableOpacity onPress={handleLogin} style={[theme.button]}>
-							<Text style={[theme.buttonText]}>Login</Text>
-						</TouchableOpacity>
 					</View>
-				</View>
-			</ScrollView>
-		</KeyboardAvoidingView>
+				</ScrollView>
+			</KeyboardAvoidingView>
+		</SafeAreaView>
 	)
 }
 
